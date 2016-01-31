@@ -27,6 +27,7 @@ import enumj.Enumerator;
 import enumj.LateBindingEnumerator;
 import enumj.ShareableEnumerator;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Demonstrates how to use the Enumerator interface.
@@ -82,6 +84,22 @@ public final class EnumeratorDemo {
         demoLast(pre);
         demoLimit(pre);
         demoLimitWhile(pre);
+	demoMap(pre);
+	demoMax(pre);
+	demoMin(pre);
+	demoNoneMatch(pre);
+	demoPeek(pre);
+	demoPrepend(pre);
+	demoPrependOn(pre);
+	demoRangeInt(pre);
+	demoReduce(pre);
+	demoRepeat(pre);
+	demoRepeatAllSupplier(pre);
+	demoRepeatAllElements(pre);
+	demoRepeatEach(pre);
+	demoReverse(pre);
+	demoSingle(pre);
+	demoZip(pre);
     }
 
     private static void demoEnumerating(String pre) {
@@ -97,23 +115,19 @@ public final class EnumeratorDemo {
     private static void demoOfArray(String pre) {
         final Enumerator<Integer> en = Enumerator.of(
                 _123.toArray(new Integer[0]));
-        System.out.println(pre + "Elements in enumerator from array:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements in enumerator from array:", pre);
     }
     private static void demoOfIterator(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123.iterator());
-        System.out.println(pre + "Elements in enumerator from iterator:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements in enumerator from iterator:", pre);
     }
     private static void demoOfIterable(String pre) {
         final Enumerator<Integer> en = Enumerator.of((Iterable<Integer>)_123);
-        System.out.println(pre + "Elements in enumerator from iterable:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements in enumerator from iterable:", pre);
     }
     private static void demoOfStream(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123.stream());
-        System.out.println(pre + "Elements in enumerator from stream:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements in enumerator from stream:", pre);
     }
     private static void demoOfSupplier(String pre) {
         final MutableInt it = new MutableInt(1);
@@ -126,32 +140,31 @@ public final class EnumeratorDemo {
             return Optional.of(val);
         };
         final Enumerator<Integer> en = Enumerator.of(supl);
-        System.out.println(pre + "Elements in supplied enumerator:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(Enumerator.of(supl),
+                "Elements in supplied enumerator:",
+                pre);
     }
     private static void demoOfLazyIterator(String pre) {
         final Enumerator<Integer> en = Enumerator.of(() -> _123.iterator());
-        System.out.println(pre + "Elements in enumerator from iterator " +
-                                 "supplied lazily:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en,
+                "Elements in enumerator from iterator supplied lazily:",
+                pre);
     }
     private static void demoOfLateBinding(String pre) {
         final LateBindingEnumerator<Integer> en =
                 Enumerator.ofLateBinding(Integer.class);
         en.bind(_123.iterator());
-        System.out.println(pre + "Elements in enumerator bound late:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements in enumerator bound late:", pre);
     }
     private static void demoAsFiltered(String pre) {
-        final Enumerator<Long> en = Enumerator.of(_123).asFiltered(Long.class);
-        System.out.println(pre + "Number of elements compatible with Long: " +
-                                 en.count());
+        printLn(Enumerator.of(_123).asFiltered(Long.class),
+                "Number of elements compatible with Long: ",
+                pre);
     }
     private static void demoAsOptional(String pre) {
-        final Enumerator<Optional<Integer>> en =
-                Enumerator.of(_123).asOptional();
-        System.out.println(pre + "Optional elements in enumerator:");
-        en.take(5).forEach(i -> System.out.println(pre + pre + i));
+        printLn(Enumerator.of(_123).asOptional().take(5),
+                "Optional elements in enumerator:",
+                pre);
         System.out.println(pre + "...");
     }
     private static void demoAsShareable(String pre) {
@@ -180,17 +193,16 @@ public final class EnumeratorDemo {
                   return i;
                 })
                 .asTolerant(e -> System.err.println("Error: " + e));
-        System.out.println(pre + "Elements of fault-tolerant enumerator: ");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements of fault-tolerant enumerator: ", pre);
     }
     private static void demoAllMatch(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123);
-        System.out.println(pre + "Wherther all elements are >=2: " +
+        System.out.println(pre + "Whether all elements are >=2: " +
                                  en.allMatch(i -> i>=2));
     }
     private static void demoAnyMatch(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123);
-        System.out.println(pre + "Wherther some elements are >=2: " +
+        System.out.println(pre + "Whether some elements are >=2: " +
                                  en.anyMatch(i -> i>=2));
     }
     private static void demoAppend(String pre) {
@@ -204,8 +216,7 @@ public final class EnumeratorDemo {
                 () -> rnd.nextInt(2),
                 _123.iterator(),
                 Enumerator.on(4, 5, 6, 7, 8));
-        System.out.println(pre + "Randomly chosen elements:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Randomly chosen elements:", pre);
     }
     private static void demoCollect(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123);
@@ -218,8 +229,7 @@ public final class EnumeratorDemo {
     private static void demoConcat(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123)
                 .concat(Enumerator.on(4, 5, 6));
-        System.out.println(pre + "Elements of concatenated enumerator:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements of concatenated enumerator:", pre);
     }
     private static void demoContains(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123);
@@ -235,8 +245,7 @@ public final class EnumeratorDemo {
         final Enumerator<Integer> en = Enumerator.of(_123)
                 .concatOn(2, 3, 4)
                 .distinct();
-        System.out.println(pre + "Distinct elements of enumerator:");
-        en.forEach(i -> System.out.println(pre + pre + i));        
+        printLn(en, "Distinct elements of enumerator:", pre);
     }
     private static void demoElementAt(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123);
@@ -256,8 +265,7 @@ public final class EnumeratorDemo {
     private static void demoFilter(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123)
                 .filter(i -> 0 == i%2);
-        System.out.println(pre + "Even elements of enumerator: ");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Even elements of enumerator: ", pre);
     }
     private static void demoFirst(String pre) {
         System.out.println(pre + "First element of empty enumerator: " +
@@ -266,8 +274,7 @@ public final class EnumeratorDemo {
     private static void demoFlatMap(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123)
                 .flatMap(i -> Enumerator.on(i, i));
-        System.out.println(pre + "Double elements of enumerator:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Double elements of enumerator:", pre);
     }
     private static void demoIterate(String pre) {
         final Enumerator<Double> en = Enumerator
@@ -284,12 +291,123 @@ public final class EnumeratorDemo {
     }
     private static void demoLimit(String pre) {
         final Enumerator<Integer> en = Enumerator.of(_123).limit(2);
-        System.out.println(pre + "Elements of limited enumerator:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        printLn(en, "Elements of limited enumerator:", pre);
     }
     private static void demoLimitWhile(String pre) {
-        final Enumerator<Integer> en = Enumerator.of(_123).limitWhile(i -> i<2);
-        System.out.println(pre + "Elements of enumerator limited by cond:");
-        en.forEach(i -> System.out.println(pre + pre + i));
+        final Enumerator<Integer> en = Enumerator.of(_123)
+                                                 .limitWhile(i -> i<2);
+        printLn(en, "Elements of enumerator limited by cond:", pre);
+    }
+    private static void demoMap(String pre) {
+        final Enumerator<Pair<Long, Integer>> en = Enumerator.of(_123)
+                .map(x -> x*x)
+                .map((x, i) -> Pair.of(i, x));
+        printLn(en, "Squared elements of enumerator:", pre);
+    }
+    private static void demoMax(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        System.out.println(pre + "Max. of enumerator elements: " +
+                           en.max(Integer::compare));
+    }
+    private static void demoMin(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        System.out.println(pre + "Min. of enumerator elements: " +
+                           en.max(Integer::compare));
+    }
+    private static void demoNoneMatch(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        System.out.println(pre + "5 doesn't match: " +
+                           en.noneMatch(i -> i == 5));
+    }
+    private static void demoPeek(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        printLn(en.peek(i -> System.out.println(i)),
+                "Peeking enumeratored elements:",
+                pre);
+    }
+    private static void demoPrepend(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        final Integer[] prefix = {-1, -2, -3};
+        printLn(en.prepend(Enumerator.of(prefix)),
+                "Prepended elements: ",
+                pre);
+    }
+    private static void demoPrependOn(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        printLn(en.prependOn(-1, -2, -3),
+                "Prepended elements: ",
+                pre);
+    }
+    private static void demoRangeInt(String pre) {
+        System.out.println(pre + "Range 0 .. 9:");
+        printLn(Enumerator.rangeInt(0, 10),
+                "Range 0 .. 9:",
+                pre);
+    }
+    private static void demoReduce(String pre) {
+        System.out.println(pre + "Sum 0 .. 9: " +
+                           Enumerator.rangeInt(0, 10)
+                                     .reduce((x,y) -> x+y));
+    }
+    private static void demoRepeat(String pre) {
+        printLn(Enumerator.repeat(1969, 5),
+                "Repeating the same element:",
+                pre);
+    }
+    private static void demoRepeatAllSupplier(String pre) {
+        printLn(Enumerator.repeatAll(() -> Enumerator.rangeInt(0, 3), 3),
+                "Repeating same enumerator:",
+                pre);
+    }
+    private static void demoRepeatAllElements(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        printLn(en.repeatAll(3), "Repeating enumerator:", pre);
+    }
+    private static void demoRepeatEach(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        printLn(en.repeatEach(3),
+                "Repeating each enumerated element:",
+                pre);
+    }
+    private static void demoReverse(String pre) {
+        final Enumerator<Integer> en = Enumerator.of(_123);
+        printLn(en.reverse(), "Reversed elements:", pre);
+    }
+    private static void demoSingle(String pre) {
+        System.out.println(pre + "Single element: " +
+                           Enumerator.on(5).single());
+    }
+    private static void demoZip(String pre) {
+        for(int i=0; i<=4; ++i) {
+            final Enumerator<Integer> _123 = Enumerator.on(1, 2, 3);
+            final Enumerator<Integer> _45678 = Enumerator.on(4, 5, 6, 7, 8);
+            switch(i) {
+                case 1:
+                    printLn(_123.zipAny(_45678),
+                            "Zipped elements (any):",
+                            pre);
+                    break;
+                case 2:
+                    printLn(_123.zipBoth(_45678),
+                            "Zipped elements (both):",
+                            pre);
+                    break;
+                case 3:
+                    printLn(_123.zipLeft(_45678),
+                            "Zipped elements (left):",
+                            pre);
+                    break;
+                case 4:
+                    printLn(_123.zipRight(_45678),
+                            "Zipped elements (right):",
+                            pre);
+                    break;
+            }
+        }
+    }
+
+    private static <T> void printLn(Enumerator<T> en, String msg, String pre) {
+        System.out.println(pre + msg);
+        en.forEach(e -> System.out.println(pre + pre + e));
     }
 }
